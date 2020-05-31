@@ -50,7 +50,7 @@ fn notCommentOrBlank(line: []const u8) bool {
 /// Reads a line of code from the file into buf, returns a slice with
 /// the same .ptr address as buf, and updates lineno to be the line
 /// number of the in_stream.
-fn readLine(in_stream: var, lineno: *usize, buf: []u8) ![]u8 {
+fn readLine(in_stream: var, lineno: *usize, buf: []u8, prompt: bool) ![]u8 {
     lineno.* = 0;
     while (true) {
         const line = try in_stream.readUntilDelimiterOrEof(buf, '\n');
@@ -58,6 +58,8 @@ fn readLine(in_stream: var, lineno: *usize, buf: []u8) ![]u8 {
         if (line) |nnline| {
             if (notCommentOrBlank(nnline)) {
                 return nnline;
+            } else if (prompt) {
+                try printPrompt();
             }
         } else {
             return error.EOFError;
@@ -92,7 +94,7 @@ fn getLine(
         );
         return error.OpenError;
     };
-    const line = try readLine(fh.inStream(), lineno, buf);
+    const line = try readLine(fh.inStream(), lineno, buf, false);
     return line;
 }
 
@@ -116,9 +118,15 @@ pub fn main() anyerror!u8 {
         try printVersion(cmd);
         while (true) {
             try printPrompt();
-            if (readLine(stdin, &lineno, buf[0..])) |line| {
+            if (readLine(stdin, &lineno, buf[0..], true)) |line| {
                 try printError("<stdin>", lineno, line);
-            } else |_| {
+            } else |err| {
+                switch (err) {
+                    error.EOFError => {
+                        try stdout.print("\n", .{});
+                    },
+                    else => {},
+                }
                 return 130;
             }
         }
