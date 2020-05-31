@@ -86,7 +86,7 @@ fn getLine(
     const fh = dir.openFile(filename, .{ .read = true }) catch {
         const errno = c.__errno_location().*; // Linux only? Maybe.
         const errstr = @ptrCast([*:0]const u8, c.strerror(errno));
-        std.debug.warn(
+        try stderr.print(
             "{}: can't open file '{}': [Errno {}] {}\n",
             .{ progname, filename, errno, errstr },
         );
