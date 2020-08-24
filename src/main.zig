@@ -50,7 +50,7 @@ fn notCommentOrBlank(line: []const u8) bool {
 /// Reads a line of code from the file into buf, returns a slice with
 /// the same .ptr address as buf, and updates lineno to be the line
 /// number of the in_stream.
-fn readLine(in_stream: var, lineno: *usize, buf: []u8, prompt: bool) ![]u8 {
+fn readLine(in_stream: anytype, lineno: *usize, buf: []u8, prompt: bool) ![]u8 {
     lineno.* = 0;
     while (true) {
         const line = try in_stream.readUntilDelimiterOrEof(buf, '\n');
